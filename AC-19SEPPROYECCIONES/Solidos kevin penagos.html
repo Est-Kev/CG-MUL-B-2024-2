@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proyecciones 3D Mejoradas</title>
+    <title>Tipos de Proyecciones</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
@@ -21,8 +22,8 @@
             border: 2px solid #2980b9;
             margin-bottom: 20px;
             background-color: #ecf0f1;
-            width: 800px; /* Aumentado el ancho */
-            height: 800px; /* Aumentada la altura */
+            width: 900px; /* Ampliado a 900px */
+            height: 800px;
         }
         button {
             padding: 10px 20px;
@@ -36,118 +37,164 @@
         button:hover {
             background-color: #2980b9;
         }
+        h1 {
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
     <div id="container">
-        <canvas id="canvas" width="800" height="800"></canvas>
+        <h1>Tipos de Proyecciones</h1> <!-- Título añadido -->
+        <canvas id="canvas" width="900" height="800"></canvas>
         <div>
-            <button onclick="changeProjection('perspective')">Perspectiva</button>
-            <button onclick="changeProjection('orthographic')">Ortográfica</button>
-            <button onclick="changeProjection('isometric')">Isométrica</button>
+            <button onclick="cubo.dibujar_perspectiva(ctx)">Perspectiva</button>
+            <button onclick="cubo.dibujar_ortografica(ctx)">Ortográfica</button>
+            <button onclick="cubo.dibujar_isometrica(ctx)">Isométrica</button>
         </div>
     </div>
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
 
-        let vertices = [
-            [-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1],
-            [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]
-        ];
+        class Linea {
+            constructor(puntoInicial, puntoFinal) {
+                this.puntoInicial = puntoInicial;
+                this.puntoFinal = puntoFinal;
+            }
 
-        let edges = [
-            [0, 1], [1, 2], [2, 3], [3, 0],
-            [4, 5], [5, 6], [6, 7], [7, 4],
-            [0, 4], [1, 5], [2, 6], [3, 7]
-        ];
+            dibujar(ctx, color = '#000') {
+                ctx.strokeStyle = color;
+                ctx.beginPath();
+                ctx.moveTo(this.puntoInicial[0], this.puntoInicial[1]);
+                ctx.lineTo(this.puntoFinal[0], this.puntoFinal[1]);
+                ctx.stroke();
+            }
+        }
 
-        let lightSource = [0, 0, -5];
-        let projectionType = 'perspective';
-        let angleX = 0;
-        let angleY = 0;
-
-        function project(vertex) {
-            const [x, y, z] = vertex;
-            let scale = 1;
-            if (projectionType === 'perspective') {
-                scale = 1 / (z + 3);
-            } else if (projectionType === 'isometric') {
-                return [
-                    (x - y) * Math.cos(Math.PI / 6) * 200 + canvas.width / 2,
-                    (x + y - z) * Math.sin(Math.PI / 6) * 200 + canvas.height / 2
+        class Cuadrado {
+            constructor(vertices) {
+                this.lineas = [
+                    new Linea(vertices[0], vertices[1]),
+                    new Linea(vertices[1], vertices[2]),
+                    new Linea(vertices[2], vertices[3]),
+                    new Linea(vertices[3], vertices[0])
                 ];
             }
-            return [
-                x * scale * 200 + canvas.width / 2,
-                y * scale * 200 + canvas.height / 2
-            ];
+
+            dibujar(ctx, color) {
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                this.lineas.forEach((linea, i) => {
+                    const [x, y] = linea.puntoInicial;
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                ctx.closePath();
+                ctx.fill();
+            }
         }
 
-        function drawCube() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        class Cubo {
+            constructor() {
+                this.vertices = [
+                    [-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1],
+                    [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]
+                ];
+                this.edges = [
+                    [0, 1], [1, 2], [2, 3], [3, 0],
+                    [4, 5], [5, 6], [6, 7], [7, 4],
+                    [0, 4], [1, 5], [2, 6], [3, 7]
+                ];
+                this.angleX = 0;
+                this.angleY = 0;
+                this.projectionType = 'perspective';
+            }
 
-            let rotatedVertices = vertices.map(vertex => rotate(vertex, angleX, angleY));
-            let projectedVertices = rotatedVertices.map(vertex => project(vertex));
-
-            drawFace([0, 1, 2, 3], rotatedVertices, projectedVertices, 'rgba(150, 150, 150, 0.5)'); // Cara trasera
-            drawFace([4, 5, 6, 7], rotatedVertices, projectedVertices, 'rgba(170, 170, 170, 0.5)'); // Cara delantera
-            drawFace([0, 1, 5, 4], rotatedVertices, projectedVertices, 'rgba(130, 130, 130, 0.5)'); // Lateral
-            drawFace([1, 2, 6, 5], rotatedVertices, projectedVertices, 'rgba(160, 160, 160, 0.5)'); // Lateral
-            drawFace([2, 3, 7, 6], rotatedVertices, projectedVertices, 'rgba(140, 140, 140, 0.5)'); // Lateral
-            drawFace([3, 0, 4, 7], rotatedVertices, projectedVertices, 'rgba(180, 180, 180, 0.5)'); // Lateral
-
-            ctx.beginPath();
-            edges.forEach(edge => {
-                let [start, end] = edge;
-                ctx.moveTo(projectedVertices[start][0], projectedVertices[start][1]);
-                ctx.lineTo(projectedVertices[end][0], projectedVertices[end][1]);
-            });
-            ctx.stroke();
-        }
-
-        function drawFace(faceIndices, rotatedVertices, projectedVertices, color) {
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            faceIndices.forEach((index, i) => {
-                let [x, y] = projectedVertices[index];
-                if (i === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
+            project(vertex) {
+                const [x, y, z] = vertex;
+                let scale = 1;
+                if (this.projectionType === 'perspective') {
+                    scale = 1 / (z + 3);
+                } else if (this.projectionType === 'isometric') {
+                    return [
+                        (x - y) * Math.cos(Math.PI / 6) * 200 + canvas.width / 2,
+                        (x + y - z) * Math.sin(Math.PI / 6) * 200 + canvas.height / 2
+                    ];
                 }
-            });
-            ctx.closePath();
-            ctx.fill();
+                return [
+                    x * scale * 200 + canvas.width / 2,
+                    y * scale * 200 + canvas.height / 2
+                ];
+            }
+
+            drawFace(faceIndices, rotatedVertices, projectedVertices, color) {
+                const cuadrado = new Cuadrado(faceIndices.map(i => projectedVertices[i]));
+                cuadrado.dibujar(ctx, color);
+            }
+
+            drawCube() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let rotatedVertices = this.vertices.map(vertex => this.rotate(vertex));
+                let projectedVertices = rotatedVertices.map(vertex => this.project(vertex));
+
+                this.drawFace([0, 1, 2, 3], rotatedVertices, projectedVertices, 'rgba(150, 150, 150, 0.5)'); // Cara trasera
+                this.drawFace([4, 5, 6, 7], rotatedVertices, projectedVertices, 'rgba(170, 170, 170, 0.5)'); // Cara delantera
+                this.drawFace([0, 1, 5, 4], rotatedVertices, projectedVertices, 'rgba(130, 130, 130, 0.5)'); // Lateral
+                this.drawFace([1, 2, 6, 5], rotatedVertices, projectedVertices, 'rgba(160, 160, 160, 0.5)'); // Lateral
+                this.drawFace([2, 3, 7, 6], rotatedVertices, projectedVertices, 'rgba(140, 140, 140, 0.5)'); // Lateral
+                this.drawFace([3, 0, 4, 7], rotatedVertices, projectedVertices, 'rgba(180, 180, 180, 0.5)'); // Lateral
+
+                ctx.beginPath();
+                this.edges.forEach(edge => {
+                    let [start, end] = edge;
+                    ctx.moveTo(projectedVertices[start][0], projectedVertices[start][1]);
+                    ctx.lineTo(projectedVertices[end][0], projectedVertices[end][1]);
+                });
+                ctx.stroke();
+            }
+
+            rotate([x, y, z]) {
+                let cosX = Math.cos(this.angleX), sinX = Math.sin(this.angleX);
+                let cosY = Math.cos(this.angleY), sinY = Math.sin(this.angleY);
+
+                let newY = y * cosX - z * sinX;
+                let newZ = y * sinX + z * cosX;
+                y = newY; z = newZ;
+
+                let newX = x * cosY - z * sinY;
+                newZ = x * sinY + z * cosY;
+
+                return [newX, y, newZ];
+            }
+
+            dibujar_perspectiva(ctx) {
+                this.projectionType = 'perspective';
+                this.drawCube();
+            }
+
+            dibujar_ortografica(ctx) {
+                this.projectionType = 'orthographic';
+                this.drawCube();
+            }
+
+            dibujar_isometrica(ctx) {
+                this.projectionType = 'isometric';
+                this.drawCube();
+            }
+
+            animate() {
+                this.angleX += 0.005; // Reducir la velocidad de rotación
+                this.angleY += 0.005; // Reducir la velocidad de rotación
+                this.drawCube();
+                requestAnimationFrame(() => this.animate());
+            }
         }
 
-        function rotate([x, y, z], angleX, angleY) {
-            let cosX = Math.cos(angleX), sinX = Math.sin(angleX);
-            let cosY = Math.cos(angleY), sinY = Math.sin(angleY);
-
-            let newY = y * cosX - z * sinX;
-            let newZ = y * sinX + z * cosX;
-            y = newY; z = newZ;
-
-            let newX = x * cosY - z * sinY;
-            newZ = x * sinY + z * cosY;
-
-            return [newX, y, newZ];
-        }
-
-        function changeProjection(newProjection) {
-            projectionType = newProjection;
-            drawCube();
-        }
-
-        function animate() {
-            angleX += 0.005; // Reducir la velocidad de rotación
-            angleY += 0.005; // Reducir la velocidad de rotación
-            drawCube();
-            requestAnimationFrame(animate);
-        }
-
-        animate();
+        const cubo = new Cubo();
+        cubo.animate();
     </script>
 </body>
 </html>
