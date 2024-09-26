@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Three.js - Cubo, Esfera y Otro Objeto</title>
+    <title>Three.js - Cubo, Esfera y Otro Objeto Animados</title>
     <style>
         body { margin: 0; }
         canvas { display: block; }
@@ -19,47 +19,86 @@
 
         // Crear cámara
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 5;
+        camera.position.z = 10;
 
         // Crear renderizador
         const renderer = new THREE.WebGLRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // Agregar un cubo
+        // Crear geometrías, materiales y añadir a la escena
+
+        // Cubo
         const geometryCube = new THREE.BoxGeometry();
-        const materialCube = new THREE.MeshBasicMaterial({ color: 0x00ff00 }); // Color verde
+        const materialCube = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
         const cube = new THREE.Mesh(geometryCube, materialCube);
         scene.add(cube);
 
-        // Agregar una esfera
+        // Esfera
         const geometrySphere = new THREE.SphereGeometry(1, 32, 32);
-        const materialSphere = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Color rojo
+        const materialSphere = new THREE.MeshBasicMaterial({ color: 0xff0000 });
         const sphere = new THREE.Mesh(geometrySphere, materialSphere);
-        sphere.position.x = -3; // Mover esfera a la izquierda
         scene.add(sphere);
 
-        // Agregar un tercer objeto (Tetraedro)
+        // Tetraedro
         const geometryTetra = new THREE.TetrahedronGeometry(1);
-        const materialTetra = new THREE.MeshBasicMaterial({ color: 0x0000ff }); // Color azul
+        const materialTetra = new THREE.MeshBasicMaterial({ color: 0x0000ff });
         const tetrahedron = new THREE.Mesh(geometryTetra, materialTetra);
-        tetrahedron.position.x = 3; // Mover tetraedro a la derecha
         scene.add(tetrahedron);
+
+        // Posicionar los objetos en la escena
+        cube.position.set(-4, 0, 0);
+        sphere.position.set(0, 0, 0);
+        tetrahedron.position.set(4, 0, 0);
+
+        // Generar velocidades y direcciones aleatorias
+        function getRandomSpeed() {
+            return (Math.random() - 0.5) * 0.1; // Velocidades pequeñas y aleatorias
+        }
+
+        // Velocidades de rotación y movimiento para cada objeto
+        const cubeSpeed = { rotation: { x: getRandomSpeed(), y: getRandomSpeed() }, movement: { x: getRandomSpeed(), y: getRandomSpeed() } };
+        const sphereSpeed = { rotation: { x: getRandomSpeed(), y: getRandomSpeed() }, movement: { x: getRandomSpeed(), y: getRandomSpeed() } };
+        const tetraSpeed = { rotation: { x: getRandomSpeed(), y: getRandomSpeed() }, movement: { x: getRandomSpeed(), y: getRandomSpeed() } };
+
+        // Límites de movimiento en el eje X y Y
+        const bounds = { x: 5, y: 3 };
 
         // Animación
         function animate() {
             requestAnimationFrame(animate);
 
             // Rotación de los objetos
-            cube.rotation.x += 0.01;
-            cube.rotation.y += 0.01;
+            cube.rotation.x += cubeSpeed.rotation.x;
+            cube.rotation.y += cubeSpeed.rotation.y;
 
-            sphere.rotation.x += 0.01;
-            sphere.rotation.y += 0.01;
+            sphere.rotation.x += sphereSpeed.rotation.x;
+            sphere.rotation.y += sphereSpeed.rotation.y;
 
-            tetrahedron.rotation.x += 0.01;
-            tetrahedron.rotation.y += 0.01;
+            tetrahedron.rotation.x += tetraSpeed.rotation.x;
+            tetrahedron.rotation.y += tetraSpeed.rotation.y;
 
+            // Movimiento de los objetos
+            cube.position.x += cubeSpeed.movement.x;
+            cube.position.y += cubeSpeed.movement.y;
+
+            sphere.position.x += sphereSpeed.movement.x;
+            sphere.position.y += sphereSpeed.movement.y;
+
+            tetrahedron.position.x += tetraSpeed.movement.x;
+            tetrahedron.position.y += tetraSpeed.movement.y;
+
+            // Verificar límites y hacer que reboten
+            if (Math.abs(cube.position.x) > bounds.x) cubeSpeed.movement.x *= -1;
+            if (Math.abs(cube.position.y) > bounds.y) cubeSpeed.movement.y *= -1;
+
+            if (Math.abs(sphere.position.x) > bounds.x) sphereSpeed.movement.x *= -1;
+            if (Math.abs(sphere.position.y) > bounds.y) sphereSpeed.movement.y *= -1;
+
+            if (Math.abs(tetrahedron.position.x) > bounds.x) tetraSpeed.movement.x *= -1;
+            if (Math.abs(tetrahedron.position.y) > bounds.y) tetraSpeed.movement.y *= -1;
+
+            // Renderizar la escena
             renderer.render(scene, camera);
         }
 
