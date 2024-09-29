@@ -1,11 +1,9 @@
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Three.js - Cubo, Esfera y Otro Objeto Animados</title>
+    <title>Three.js - Cubo, Esfera y Tetraedro con Textura</title>
     <style>
         body { margin: 0; }
         canvas { display: block; }
@@ -26,23 +24,25 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // Crear geometrías, materiales y añadir a la escena
+        // Cargar la textura
+        const textureLoader = new THREE.TextureLoader();
+        const newTexture = textureLoader.load('https://threejsfundamentals.org/threejs/resources/images/checker.png'); // Cambiar a la nueva textura
 
-        // Cubo
+        // Cubo con la textura
         const geometryCube = new THREE.BoxGeometry();
-        const materialCube = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const materialCube = new THREE.MeshBasicMaterial({ map: newTexture });
         const cube = new THREE.Mesh(geometryCube, materialCube);
         scene.add(cube);
 
-        // Esfera
+        // Esfera con la textura
         const geometrySphere = new THREE.SphereGeometry(1, 32, 32);
-        const materialSphere = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        const materialSphere = new THREE.MeshBasicMaterial({ map: newTexture });
         const sphere = new THREE.Mesh(geometrySphere, materialSphere);
         scene.add(sphere);
 
-        // Tetraedro
+        // Tetraedro con la textura
         const geometryTetra = new THREE.TetrahedronGeometry(1);
-        const materialTetra = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+        const materialTetra = new THREE.MeshBasicMaterial({ map: newTexture });
         const tetrahedron = new THREE.Mesh(geometryTetra, materialTetra);
         scene.add(tetrahedron);
 
