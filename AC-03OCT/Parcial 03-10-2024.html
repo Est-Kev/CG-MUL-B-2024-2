@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ejemplo Three.js - Cubos Aleatorios</title>
+  <title>Ejemplo Three.js - Cubos Alineados</title>
   <style>
     body { margin: 0; }
     canvas { display: block; }
@@ -20,7 +20,7 @@
   escena.background = new THREE.Color(0x000000);
   
   const camara = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camara.position.set(0, 0, 10);
+  camara.position.set(0, 5, 10); // Elevar la cámara para ver mejor los cubos
 
   const renderizador = new THREE.WebGLRenderer();
   renderizador.setSize(window.innerWidth, window.innerHeight);
@@ -36,11 +36,14 @@
   // Crear y agregar cubos a la escena
   const crearCubos = (num) => {
     const geometria = new THREE.BoxGeometry(1, 1, 1);
-    const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const material = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
+
+    const spacing = 2; // Espacio entre los cubos
 
     for (let i = 0; i < num; i++) {
       const cubo = new THREE.Mesh(geometria, material);
-      cubo.position.set((Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10);
+      // Calcular la posición en el eje X para que estén equidistantes
+      cubo.position.set(i * spacing, 0, 0); // Alinear cubos en el eje X
       escena.add(cubo);
     }
   };
