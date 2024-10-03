@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ejemplo Three.js - Cubos Alineados</title>
+  <title>Ejemplo Three.js - Cubos como Mallas</title>
   <style>
     body { margin: 0; }
     canvas { display: block; }
@@ -33,19 +33,30 @@
   luzDireccional.position.set(1, 1, 1).normalize();
   escena.add(luzDireccional);
 
+  let cubos = []; // Array para almacenar los cubos
+  let rotacionVelocidad = 0.01; // Velocidad de rotación
+
   // Crear y agregar cubos a la escena
   const crearCubos = (num) => {
     const geometria = new THREE.BoxGeometry(1, 1, 1);
-    const material = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
+    const material = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true }); // Malla blanca
 
     const spacing = 2; // Espacio entre los cubos
+
+    // Limpiar cubos anteriores
+    cubos.forEach(cubo => escena.remove(cubo));
+    cubos = []; // Reiniciar el array de cubos
 
     for (let i = 0; i < num; i++) {
       const cubo = new THREE.Mesh(geometria, material);
       // Calcular la posición en el eje X para que estén equidistantes
       cubo.position.set(i * spacing, 0, 0); // Alinear cubos en el eje X
       escena.add(cubo);
+      cubos.push(cubo); // Agregar cubo al array
     }
+
+    // Cambiar la velocidad de rotación según la cantidad de cubos
+    rotacionVelocidad = 0.01 + num * 0.005; // Aumentar la velocidad con el número de cubos
   };
 
   crearCubos(Math.floor(Math.random() * 5) + 1); // Entre 1 y 5 cubos
@@ -57,6 +68,13 @@
   const animar = () => {
     requestAnimationFrame(animar);
     controles.update();
+
+    // Rotar todos los cubos
+    cubos.forEach(cubo => {
+      cubo.rotation.x += rotacionVelocidad; // Rotar en el eje X
+      cubo.rotation.y += rotacionVelocidad; // Rotar en el eje Y
+    });
+
     renderizador.render(escena, camara);
   };
   animar();
